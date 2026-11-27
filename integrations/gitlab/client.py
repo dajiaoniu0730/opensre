@@ -110,6 +110,18 @@ def _request_json(
     return response.json()
 
 
+def _request_text(config: GitlabConfig, method: str, path: str) -> str:
+    url = f"{config.api_base_url}{path}"
+    response = httpx.request(
+        method,
+        url,
+        headers={**config.auth_headers, "Accept": "text/plain"},
+        timeout=config.timeout_seconds,
+    )
+    response.raise_for_status()
+    return response.text
+
+
 def validate_gitlab_config(config: GitlabConfig) -> GitlabValidationResult:
     """Validate gitlab connectivity with a lightweight user query."""
 
@@ -224,6 +236,23 @@ def get_gitlab_pipelines(
         params=params,
     )
     return payload if isinstance(payload, list) else []
+
+
+def get_gitlab_job_trace(
+    *,
+    config: GitlabConfig,
+    project_id: str,
+    job_id: int,
+) -> str:
+    """Fetch the console log for a GitLab CI job."""
+
+    encoded_project_id = quote(project_id, safe="")
+    payload = _request_text(
+        config,
+        "GET",
+        f"/projects/{encoded_project_id}/jobs/{job_id}/trace",
+    )
+    return payload
 
 
 def get_gitlab_file(
