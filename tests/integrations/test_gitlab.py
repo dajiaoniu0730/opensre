@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
 from typing import Any
 
 import httpx
@@ -21,6 +22,7 @@ from integrations.gitlab import (
     validate_gitlab_config,
     validate_gitlab_connection,
 )
+from integrations.gitlab.client import get_gitlab_job_trace
 from integrations.gitlab.verifier import verify_gitlab
 
 # ---------------------------------------------------------------------------
@@ -471,6 +473,61 @@ def test_get_gitlab_pipelines_returns_empty_list_for_non_list_response(
     )
 
     assert result == []
+
+
+# ---------------------------------------------------------------------------
+# get_gitlab_job_trace
+# ---------------------------------------------------------------------------
+
+
+def test_get_gitlab_job_trace_returns_plain_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    log = "Running pytest\nFAILED\n"
+    response = _FakeResponse([])
+    response.text = log
+    monkeypatch.setattr(
+        "integrations.gitlab.client.httpx.request",
+        lambda *_, **__: response,
+    )
+
+    result = get_gitlab_job_trace(
+        config=_make_config(),
+        project_id="my-org/my-repo",
+        job_id=456,
+    )
+
+    assert result == log
+
+
+def test_get_gitlab_job_trace_url_encodes_project_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def _fake_request(_method: str, url: str, **_kw: Any) -> _FakeResponse:
+        captured["url"] = url
+        return _FakeResponse([])
+
+    monkeypatch.setattr("integrations.gitlab.client.httpx.request", _fake_request)
+
+    get_gitlab_job_trace(
+        config=_make_config(),
+        project_id="my-org/my-repo",
+        job_id=456,
+    )
+
+    assert "my-org%2Fmy-repo" in captured["url"]
+
+
+def test_get_gitlab_job_trace_raises_on_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "integrations.gitlab.client.httpx.request",
+        lambda *_, **__: _FakeResponse({}, status_code=HTTPStatus.NOT_FOUND),
+    )
+
+    with pytest.raises(httpx.HTTPStatusError):
+        get_gitlab_job_trace(config=_make_config(), project_id="proj", job_id=456)
 
 
 # ---------------------------------------------------------------------------
