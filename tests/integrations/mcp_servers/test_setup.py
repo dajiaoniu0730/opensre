@@ -9,6 +9,7 @@ import pytest
 
 from infrastructure.harness_providers.integration_resolution import resolve_integrations
 from integrations.mcp_servers import McpServerConfig, clear_discovery_cache, mcp_server_tools
+from integrations.mcp_servers import setup as mcp_setup
 from integrations.mcp_servers.setup import MCP_SERVERS_SETUP
 from integrations.setup_flow import IntegrationSetupSpec, apply_setup
 from integrations.store import get_integration
@@ -154,7 +155,6 @@ def test_rerunning_setup_keeps_a_servers_settings_by_default(
     import dataclasses
 
     import integrations.cli as cli
-    import integrations.mcp_servers.setup as mcp_setup
     from integrations.store import upsert_instance
 
     saved = {
@@ -219,7 +219,7 @@ def test_rerunning_setup_keeps_a_stored_argument_list_intact(
 
     # Assert
     [instance] = (get_integration("mcp") or {})["instances"]
-    config = McpServerConfig.model_validate(instance["credentials"])
+    config = McpServerConfig.from_mapping(instance["credentials"])
     assert config.args == tuple(stored_args)
 
 
@@ -248,7 +248,6 @@ def test_a_new_server_never_inherits_another_servers_token(
     import dataclasses
 
     import integrations.cli as cli
-    import integrations.mcp_servers.setup as mcp_setup
     from integrations.store import upsert_instance
 
     upsert_instance(
@@ -333,9 +332,7 @@ def test_updating_a_server_keeps_settings_the_form_does_not_edit() -> None:
         assert config["headers"] == {"X-Api-Key": "k-1"}
         assert config["timeout_seconds"] == 90
         assert config["mode"] == "sse"
-    server = McpServerConfig.model_validate(
-        {k: v for k, v in instance["credentials"].items() if k in McpServerConfig.model_fields}
-    )
+    server = McpServerConfig.from_mapping(instance["credentials"])
     assert server.request_headers["Authorization"] == "Bearer new"
 
 
@@ -366,3 +363,27 @@ def test_switching_a_server_to_a_local_command_drops_http_only_settings() -> Non
     assert "headers" not in instance["credentials"]
     assert "mode" not in instance["credentials"]
     assert instance["credentials"]["timeout_seconds"] == 90
+
+
+def test_updating_a_local_server_keeps_its_saved_env() -> None:
+    from integrations.store import upsert_instance
+
+    env = {"OPS_TOKEN": "t-1", "CLEARED": ""}
+    upsert_instance(
+        "mcp",
+        {
+            "name": "ops",
+            "credentials": {"command": sys.executable, "args": [_OPS_SERVER], "env": env},
+        },
+    )
+    seen: list[dict[str, object]] = []
+
+    outcome = apply_setup(
+        _capturing_spec(seen),
+        {"name": "ops", "command": sys.executable, "args": _OPS_SERVER, "read_only": "yes"},
+    )
+
+    assert outcome.ok, outcome.detail
+    [instance] = (get_integration("mcp") or {})["instances"]
+    assert seen[0]["env"] == env
+    assert instance["credentials"]["env"] == env

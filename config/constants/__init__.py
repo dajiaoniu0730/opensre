@@ -291,6 +291,9 @@ if TYPE_CHECKING:
     from config.constants.capabilities import (
         SCHEDULER_HOST_IN_PROCESS as SCHEDULER_HOST_IN_PROCESS,
     )
+    from config.constants.capabilities import (
+        SHELL_COMMANDS_CAPABILITY as SHELL_COMMANDS_CAPABILITY,
+    )
     from config.constants.chatgpt import (
         CHATGPT_AUTHORIZE_URL as CHATGPT_AUTHORIZE_URL,
     )
@@ -359,6 +362,18 @@ if TYPE_CHECKING:
     )
     from config.constants.coding_agent import (
         CODING_AGENT_SANDBOX_HOST as CODING_AGENT_SANDBOX_HOST,
+    )
+    from config.constants.control_plane_env import (
+        CONTROL_PLANE_SECRET_ENV_NAMES as CONTROL_PLANE_SECRET_ENV_NAMES,
+    )
+    from config.constants.control_plane_env import (
+        GATEWAY_LISTENER_TOKEN_ENV as GATEWAY_LISTENER_TOKEN_ENV,
+    )
+    from config.constants.control_plane_env import (
+        LEGACY_LISTENER_TOKEN_ENV as LEGACY_LISTENER_TOKEN_ENV,
+    )
+    from config.constants.control_plane_env import (
+        without_control_plane_secrets as without_control_plane_secrets,
     )
     from config.constants.conversation_history import (
         OPENSRE_HISTORY_TOKEN_BUDGET_ENV as OPENSRE_HISTORY_TOKEN_BUDGET_ENV,
@@ -891,7 +906,34 @@ if TYPE_CHECKING:
         MARIADB_USERNAME_ENV as MARIADB_USERNAME_ENV,
     )
     from config.constants.mcp import (
+        MCP_AWS_PROFILE_ENV as MCP_AWS_PROFILE_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_DATADOG_API_KEY_HEADER as MCP_DATADOG_API_KEY_HEADER,
+    )
+    from config.constants.mcp import (
+        MCP_DATADOG_APP_KEY_HEADER as MCP_DATADOG_APP_KEY_HEADER,
+    )
+    from config.constants.mcp import (
+        MCP_ECS_ALLOW_SENSITIVE_DATA_ENV as MCP_ECS_ALLOW_SENSITIVE_DATA_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_ECS_ALLOW_WRITE_ENV as MCP_ECS_ALLOW_WRITE_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_GRAFANA_TOKEN_ENV as MCP_GRAFANA_TOKEN_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_GRAFANA_URL_ENV as MCP_GRAFANA_URL_ENV,
+    )
+    from config.constants.mcp import (
         MCP_NO_COLOR_ENV as MCP_NO_COLOR_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_PAGERDUTY_HOST_ENV as MCP_PAGERDUTY_HOST_ENV,
+    )
+    from config.constants.mcp import (
+        MCP_PAGERDUTY_TOKEN_ENV as MCP_PAGERDUTY_TOKEN_ENV,
     )
     from config.constants.mcp import (
         MCP_SERVER_TOOL_PREFIX as MCP_SERVER_TOOL_PREFIX,
@@ -1253,6 +1295,9 @@ if TYPE_CHECKING:
     )
     from config.constants.repl_autonomy import (
         DEFAULT_AUTO_LEVEL as DEFAULT_AUTO_LEVEL,
+    )
+    from config.constants.repl_autonomy import (
+        FILE_EDIT_TOOL_TYPE as FILE_EDIT_TOOL_TYPE,
     )
     from config.constants.repl_autonomy import (
         AutoLevel as AutoLevel,
